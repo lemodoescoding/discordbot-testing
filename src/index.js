@@ -1,17 +1,23 @@
 require("dotenv").config();
 
-const { Client, IntentsBitField, EmbedBuilder } = require("discord.js");
+const { Client, IntentsBitField, EmbedBuilder, ActivityType } = require("discord.js");
 
 const client = new Client({
   intents: [
     IntentsBitField.Flags.Guilds,
     IntentsBitField.Flags.GuildMembers,
     IntentsBitField.Flags.GuildMessages,
+    IntentsBitField.Flags.GuildPresences,
     IntentsBitField.Flags.MessageContent,
   ],
 });
 
 client.on("clientReady", (c) => {
+    c.user.setActivity({
+        name: "Under Maintenance",
+        type: ActivityType.Streaming,
+        url: 'https://www.youtube.com/watch?v=X4VbdwhkE10'
+    })
   console.log(`[DISCORD BOT] ${c.user.tag} status is ready.`);
 });
 
