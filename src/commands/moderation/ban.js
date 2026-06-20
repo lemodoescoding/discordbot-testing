@@ -1,0 +1,70 @@
+const { Client, Interaction, ApplicationCommandOptionType, PermissionFlagsBits } = require('discord.js')
+
+module.exports = {
+    name: 'ban',
+    description: 'Ban a member on the server.',
+    // devOnly: Boolean,
+    // testOnly: Boolean,
+    options: [
+        {
+            name: 'target-user',
+            description: 'Ban a member!!!!',
+            required: true,
+            type: ApplicationCommandOptionType.Mentionable
+        },
+        {
+            name: 'reason',
+            description: 'Reason to ban user.',
+            type: ApplicationCommandOptionType.String
+        }
+    ],
+    permissionsRequired: [
+        PermissionFlagsBits.BanMembers
+    ],
+    botPermissions: [
+        PermissionFlagsBits.BanMembers
+    ],
+    /** 
+     * @param {Client} client
+     * @param {Interaction} interaction 
+     * */
+    callback: async (client, interaction) => {
+        const targetUserId = interaction.options.get('target-user').value;
+        const reason = interaction.options.get('reason')?.value || "No reason provided.";
+
+        await interaction.deferReply();
+        const targetUser = await interaction.guild.members.fetch(targetUserId)
+
+        if(!targetUserId) {
+            await interaction.editReply("That user doesnt exist in this server");
+            return;
+        }
+
+        if(targetUserId === interaction.guild.ownerId) {
+            await interaction.editReply("You can't ban that user because they're the server owner");
+            return;
+        }
+
+        const targetUserRolePosition = targetUser.roles.highest.position;
+        const requestUserRolePosition = interaction.member.roles.highest.position;
+        const botRolePosition = interaction.guild.members.me.roles.highest.position;
+
+        if (targetUserRolePosition >= requestUserRolePosition) {
+            await interaction.reply("You can't ban that user, because they have the same/higher role than you.")
+            return;
+        }
+
+        if (targetUserRolePosition >= botRolePosition) {
+            await interaction.reply("I can't ban that user, because they have the same/higher role than me.");
+            return;
+        }
+
+        try {
+            await targetUser.ban({ reason })
+            await interaction.editReply(`User ${targetUser} was banned\n Reason: ${reason}`)
+        } catch (error) {
+            console.log(`There was an error when banning: ${error}`)
+        }
+        // interaction.reply(`ban! ${client.ws.ping}ms`)
+    }
+}
