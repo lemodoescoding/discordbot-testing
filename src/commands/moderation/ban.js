@@ -50,12 +50,12 @@ module.exports = {
         const botRolePosition = interaction.guild.members.me.roles.highest.position;
 
         if (targetUserRolePosition >= requestUserRolePosition) {
-            await interaction.reply("You can't ban that user, because they have the same/higher role than you.")
+            await interaction.editReply("You can't ban that user, because they have the same/higher role than you.")
             return;
         }
 
         if (targetUserRolePosition >= botRolePosition) {
-            await interaction.reply("I can't ban that user, because they have the same/higher role than me.");
+            await interaction.editReply("I can't ban that user, because they have the same/higher role than me.");
             return;
         }
 

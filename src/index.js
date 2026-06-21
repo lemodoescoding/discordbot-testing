@@ -1,22 +1,48 @@
 require("dotenv").config();
 
-const { Client, IntentsBitField, EmbedBuilder, ActivityType } = require("discord.js");
+const mongoose = require("mongoose");
+const path = require("path");
+
+const { Font, FontFactory } = require("canvacord");
+if (!FontFactory.size) {
+	Font.loadDefault();
+}
+
+const { GlobalFonts } = require("@napi-rs/canvas");
+
+GlobalFonts.registerFromPath(
+	path.join(__dirname, "../assets/fonts/Roboto-Regular.ttf"),
+	"Roboto",
+);
+
+const { Client, IntentsBitField } = require("discord.js");
 const eventHandler = require("./handlers/eventHandler");
 
 const client = new Client({
-  intents: [
-    IntentsBitField.Flags.Guilds,
-    IntentsBitField.Flags.GuildMembers,
-    IntentsBitField.Flags.GuildMessages,
-    IntentsBitField.Flags.GuildPresences,
-    IntentsBitField.Flags.MessageContent,
-  ],
+	intents: [
+		IntentsBitField.Flags.Guilds,
+		IntentsBitField.Flags.GuildMembers,
+		IntentsBitField.Flags.GuildMessages,
+		IntentsBitField.Flags.GuildPresences,
+		IntentsBitField.Flags.MessageContent,
+	],
 });
 
 // client.on("clientReady", (c) => {
 
 // });
 
-eventHandler(client);
+(async () => {
+	try {
+		mongoose.set("strictQuery", false);
+		await mongoose.connect(process.env.MONGODB_URI);
 
-client.login(process.env.BOT_TOKEN);
+		console.log("Connected to MongoDB!");
+	} catch (error) {
+		console.log(error);
+	}
+
+	eventHandler(client);
+
+	client.login(process.env.BOT_TOKEN);
+})();

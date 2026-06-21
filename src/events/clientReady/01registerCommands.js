@@ -34,7 +34,7 @@ module.exports = async (client) => {
                 if (areCommandsDifferent(existingCommand, localCommand)) {
                     await applicationCommands.edit(existingCommand.id, {
                         description,
-                        options
+                        options: options || []
                     })
 
                     console.log(`[DISCORD BOT] Edited command "${name}".`)
@@ -49,7 +49,7 @@ module.exports = async (client) => {
                 await applicationCommands.create({
                     name,
                     description,
-                    options
+                    options: options || []
                 })
 
                 console.log(`[DISCORD BOT] Registered command "${name}".`)
