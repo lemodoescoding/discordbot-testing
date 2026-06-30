@@ -1,6 +1,6 @@
 const {
-	ChatInputCommandInteraction,
 	Client,
+	ChatInputCommandInteraction,
 	MessageFlags,
 } = require("discord.js");
 
@@ -19,9 +19,9 @@ module.exports = {
 	 * @param {ChatInputCommandInteraction} interaction
 	 */
 	callback: async (client, interaction) => {
-		const channel = interaction.member.voice.channel;
+		const voiceChannel = interaction.member.voice.channel;
 
-		if (!channel) {
+		if (!voiceChannel) {
 			return interaction.reply({
 				content: "Join a voice channel first.",
 				flags: [MessageFlags.Ephemeral],
@@ -30,24 +30,22 @@ module.exports = {
 
 		await interaction.deferReply();
 
-		console.log("Joining:", channel.name);
+		console.log("Joining:", voiceChannel.name);
 
-		console.log({
-			guildId: channel.guild.id,
-			channelId: channel.id,
-			adapter: typeof channel.guild.voiceAdapterCreator,
-		});
+		console.log("Adapter:", typeof voiceChannel.guild.voiceAdapterCreator);
 
 		const connection = joinVoiceChannel({
-			channelId: channel.id,
-			guildId: channel.guild.id,
-			adapterCreator: channel.guild.voiceAdapterCreator,
-			selfDeaf: true,
+			channelId: voiceChannel.id,
+			guildId: voiceChannel.guild.id,
+			adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+			selfDeaf: false,
+			selfMute: false,
 		});
 
-		// setInterval(() => {
-		// 	console.log(connection.state);
-		// }, 1000);
+		console.log("Join created.");
+		console.log(connection.state.status);
+
+		console.log("Networking:", connection.state.networking);
 
 		connection.on("stateChange", (oldState, newState) => {
 			console.log(
@@ -55,26 +53,22 @@ module.exports = {
 			);
 		});
 
-		connection.on("debug", console.log);
-
 		try {
 			await entersState(connection, VoiceConnectionStatus.Ready, 30000);
 
-			console.log("Connected!");
+			console.log("✅ Voice Ready!");
 
-			await interaction.editReply(
-				"✅ Voice connection established successfully.",
-			);
-
-			connection.destroy();
+			await interaction.editReply("✅ Successfully connected to voice!");
 		} catch (err) {
-			console.error(err);
+			connection.on("error", console.error);
 
-			await interaction.editReply(
-				`❌ Failed.\n\`\`\`\n${err.stack}\n\`\`\``,
-			);
+			connection.on("debug", console.log);
 
 			connection.destroy();
+
+			await interaction.editReply(
+				`❌ Failed.\n\n\`\`\`\n${err.stack}\n\`\`\``,
+			);
 		}
 	},
 };
